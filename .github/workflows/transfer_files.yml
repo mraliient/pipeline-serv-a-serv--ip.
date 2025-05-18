@@ -1,0 +1,28 @@
+name: Transfer Files Pipeline
+
+on:
+  workflow_dispatch:  # Para correr manualmente y pasar parámetros
+
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Run transfer script
+        run: |
+          chmod +x ./scripts/transfer.sh
+          ./scripts/transfer.sh ${{ github.event.inputs.src_ip }} ${{ github.event.inputs.src_dir }} ${{ github.event.inputs.dest_ip }} ${{ github.event.inputs.dest_dir }}
+
+    # Definir inputs para parametrizar IPs y directorios
+    inputs:
+      src_ip:
+        description: 'IP origen'
+        required: true
+        default: '192.168.1.1'
+      src_dir:
+        description: 'Directorio origen'
+        required: true
+        default: '/path/origen'
