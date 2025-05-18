@@ -1,19 +1,28 @@
 #!/bin/bash
 
-SOURCE_IP="$1"
-SOURCE_DIR="$2"
-DEST_IP="$3"
-DEST_DIR="$4"
-PORT="$5"
-PASSWORD="$6"
+# Parámetros
+SOURCE_USER="$1"
+SOURCE_IP="$2"
+SOURCE_PORT="$3"
+SOURCE_DIR="$4"
 
-echo "Iniciando transferencia por SFTP..."
-echo "Desde: $SOURCE_IP:$SOURCE_DIR"
-echo "Hacia: $DEST_IP:$DEST_DIR"
+DEST_USER="$5"
+DEST_IP="$6"
+DEST_PORT="$7"
+DEST_DIR="$8"
 
-sshpass -p "$PASSWORD" sftp -oStrictHostKeyChecking=no -P $PORT $DEST_IP <<EOF
-  put -r $SOURCE_DIR/* $DEST_DIR/
-  bye
-EOF
+PASSWORD="$9"
 
-echo "Transferencia completada."
+echo "Iniciando transferencia de archivos..."
+echo "Desde: $SOURCE_USER@$SOURCE_IP:$SOURCE_DIR (puerto $SOURCE_PORT)"
+echo "Hacia: $DEST_USER@$DEST_IP:$DEST_DIR (puerto $DEST_PORT)"
+
+# Transferencia usando sshpass + scp por el puerto indicado
+sshpass -p "$PASSWORD" scp -P "$SOURCE_PORT" -o StrictHostKeyChecking=no -r "$SOURCE_USER@$SOURCE_IP:$SOURCE_DIR" "$DEST_USER@$DEST_IP:$DEST_DIR"
+
+if [ $? -eq 0 ]; then
+  echo "Transferencia completada con éxito."
+else
+  echo "Error en la transferencia."
+  exit 1
+fi
