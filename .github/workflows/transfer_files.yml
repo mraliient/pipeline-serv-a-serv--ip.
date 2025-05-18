@@ -1,41 +1,64 @@
-name: Transfer Files via SFTP
+name: Transferir archivos por SCP
 
 on:
   workflow_dispatch:
     inputs:
+      source_user:
+        description: 'Usuario origen'
+        required: true
+        default: 'user_origen'
       source_ip:
         description: 'IP origen'
         required: true
-        default: '192.168.1.10'
+        default: '192.168.1.100'
+      source_port:
+        description: 'Puerto SSH origen'
+        required: true
+        default: '22'
       source_dir:
         description: 'Directorio origen'
         required: true
-        default: '/path/origen'
+        default: '/ruta/origen'
+      dest_user:
+        description: 'Usuario destino'
+        required: true
+        default: 'user_destino'
       dest_ip:
         description: 'IP destino'
         required: true
-        default: '192.168.1.20'
+        default: '192.168.1.200'
+      dest_port:
+        description: 'Puerto SSH destino'
+        required: true
+        default: '22'
       dest_dir:
         description: 'Directorio destino'
         required: true
-        default: '/path/destino'
-      port:
-        description: 'Puerto SSH'
+        default: '/ruta/destino'
+      password:
+        description: 'Contraseña para SSH'
         required: true
-        default: '22'
+        default: 'tu_password'
 
 jobs:
   transfer:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-      
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
-      
-      - name: Give execute permission to transfer script
-        run: chmod +x ./scripts/transfer.sh
+    - name: Descargar repo
+      uses: actions/checkout@v3
 
-      - name: Run transfer script
-        run: ./scripts/transfer.sh ${{ inputs.source_ip }} ${{ inputs.source_dir }} ${{ inputs.dest_ip }} ${{ inputs.dest_dir }} ${{ inputs.port }} ${{ secrets.SSH_PASSWORD }}
+    - name: Dar permisos al script
+      run: chmod +x transfer.sh
+
+    - name: Ejecutar transferencia
+      run: |
+        ./transfer.sh \
+        ${{ github.event.inputs.source_user }} \
+        ${{ github.event.inputs.source_ip }} \
+        ${{ github.event.inputs.source_port }} \
+        ${{ github.event.inputs.source_dir }} \
+        ${{ github.event.inputs.dest_user }} \
+        ${{ github.event.inputs.dest_ip }} \
+        ${{ github.event.inputs.dest_port }} \
+        ${{ github.event.inputs.dest_dir }} \
+        ${{ github.event.inputs.password }}
