@@ -1,50 +1,41 @@
-name: Transferencia de Archivos vía SFTP
+name: Transfer Files via SFTP
 
 on:
   workflow_dispatch:
     inputs:
-      USER:
-        description: "Usuario SSH"
+      source_ip:
+        description: 'IP origen'
         required: true
-      PASSWORD:
-        description: "Contraseña SSH"
+        default: '192.168.1.10'
+      source_dir:
+        description: 'Directorio origen'
         required: true
-      ORIGIN_IP:
-        description: "IP del servidor origen"
+        default: '/path/origen'
+      dest_ip:
+        description: 'IP destino'
         required: true
-      DEST_IP:
-        description: "IP del servidor destino"
+        default: '192.168.1.20'
+      dest_dir:
+        description: 'Directorio destino'
         required: true
-      ORIGIN_PATH:
-        description: "Ruta origen de los archivos"
+        default: '/path/destino'
+      port:
+        description: 'Puerto SSH'
         required: true
-      DEST_PATH:
-        description: "Ruta destino para copiar archivos"
-        required: true
-      PORT:
-        description: "Puerto SSH (por defecto 22)"
-        required: false
-        default: "22"
+        default: '22'
 
 jobs:
   transfer:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Instalar sshpass
+        uses: actions/checkout@v3
+      
+      - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
+      
+      - name: Give execute permission to transfer script
+        run: chmod +x ./scripts/transfer.sh
 
-      - name: Ejecutar transferencia SFTP
-        env:
-          SSHPASS: ${{ github.event.inputs.PASSWORD }}
-        run: |
-          chmod +x ./scripts/transfer.sh
-          ./scripts/transfer.sh \
-            "${{ github.event.inputs.USER }}" \
-            "${{ github.event.inputs.ORIGIN_IP }}" \
-            "${{ github.event.inputs.DEST_IP }}" \
-            "${{ github.event.inputs.ORIGIN_PATH }}" \
-            "${{ github.event.inputs.DEST_PATH }}" \
-            "${{ github.event.inputs.PORT }}"
+      - name: Run transfer script
+        run: ./scripts/transfer.sh ${{ inputs.source_ip }} ${{ inputs.source_dir }} ${{ inputs.dest_ip }} ${{ inputs.dest_dir }} ${{ inputs.port }} ${{ secrets.SSH_PASSWORD }}
