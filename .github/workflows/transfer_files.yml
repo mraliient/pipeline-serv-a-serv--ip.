@@ -1,28 +1,36 @@
-name: Transfer Files Pipeline
+name: Transfer Files
 
 on:
-  workflow_dispatch:  # Para correr manualmente y pasar parámetros
+  workflow_dispatch:
+    inputs:
+      ip_origen:
+        description: 'IP origen'
+        required: true
+      ip_destino:
+        description: 'IP destino'
+        required: true
+      dir_origen:
+        description: 'Directorio origen'
+        required: true
+      dir_destino:
+        description: 'Directorio destino'
+        required: true
 
 jobs:
   transfer:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+      
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ github.event.inputs.ip_origen }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ github.event.inputs.ip_destino }} >> ~/.ssh/known_hosts
 
       - name: Run transfer script
         run: |
-          chmod +x ./scripts/transfer.sh
-          ./scripts/transfer.sh ${{ github.event.inputs.src_ip }} ${{ github.event.inputs.src_dir }} ${{ github.event.inputs.dest_ip }} ${{ github.event.inputs.dest_dir }}
-
-    # Definir inputs para parametrizar IPs y directorios
-    inputs:
-      src_ip:
-        description: 'IP origen'
-        required: true
-        default: '192.168.1.1'
-      src_dir:
-        description: 'Directorio origen'
-        required: true
-        default: '/path/origen'
+          bash ./scripts/transfer.sh ${{ github.event.inputs.ip_origen }} ${{ github.event.inputs.ip_destino }} ${{ github.event.inputs.dir_origen }} ${{ github.event.inputs.dir_destino }}
