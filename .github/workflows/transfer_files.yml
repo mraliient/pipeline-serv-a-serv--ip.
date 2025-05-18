@@ -1,36 +1,40 @@
-name: Transfer Files
+name: Transfer Files via SFTP
 
 on:
   workflow_dispatch:
     inputs:
-      ip_origen:
-        description: 'IP origen'
+      source_ip:
+        description: "IP del servidor origen"
         required: true
-      ip_destino:
-        description: 'IP destino'
+        default: "192.168.1.1"
+      source_path:
+        description: "Ruta del directorio origen"
         required: true
-      dir_origen:
-        description: 'Directorio origen'
+        default: "/ruta/origen/"
+      destination_ip:
+        description: "IP del servidor destino"
         required: true
-      dir_destino:
-        description: 'Directorio destino'
+        default: "192.168.1.2"
+      destination_path:
+        description: "Ruta del directorio destino"
         required: true
+        default: "/ruta/destino/"
 
 jobs:
   transfer:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-      
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ github.event.inputs.ip_origen }} >> ~/.ssh/known_hosts
-          ssh-keyscan -H ${{ github.event.inputs.ip_destino }} >> ~/.ssh/known_hosts
 
-      - name: Run transfer script
-        run: |
-          bash ./scripts/transfer.sh ${{ github.event.inputs.ip_origen }} ${{ github.event.inputs.ip_destino }} ${{ github.event.inputs.dir_origen }} ${{ github.event.inputs.dir_destino }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Install sshpass
+      run: sudo apt-get update && sudo apt-get install -y sshpass
+
+    - name: Transfer files from source to destination via SFTP
+      run: |
+        sshpass -p "${{ secrets.SOURCE_PASS }}" scp -o StrictHostKeyChecking=no -r \
+        ${{ github.event.inputs.source_ip }}:${{ github.event.inputs.source_path }}/* \
+        ${{ secrets.DEST_USER }}@${{ github.event.inputs.destination_ip }}:${{ github.event.inputs.destination_path }}
+      env:
+        SSHPASS: ${{ secrets.SOURCE_PASS }}
