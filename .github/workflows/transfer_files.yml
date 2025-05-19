@@ -1,64 +1,41 @@
-name: Transferir archivos por SCP
+name: Transfer Files
 
 on:
   workflow_dispatch:
     inputs:
-      source_user:
-        description: 'Usuario origen'
-        required: true
-        default: 'user_origen'
       source_ip:
-        description: 'IP origen'
+        description: 'IP del servidor origen'
         required: true
-        default: '192.168.1.100'
-      source_port:
-        description: 'Puerto SSH origen'
-        required: true
-        default: '22'
       source_dir:
-        description: 'Directorio origen'
+        description: 'Directorio en servidor origen'
         required: true
-        default: '/ruta/origen'
-      dest_user:
-        description: 'Usuario destino'
-        required: true
-        default: 'user_destino'
       dest_ip:
-        description: 'IP destino'
+        description: 'IP del servidor destino'
         required: true
-        default: '192.168.1.200'
-      dest_port:
-        description: 'Puerto SSH destino'
-        required: true
-        default: '22'
       dest_dir:
-        description: 'Directorio destino'
+        description: 'Directorio en servidor destino'
         required: true
-        default: '/ruta/destino'
-      password:
-        description: 'Contraseña para SSH'
-        required: true
-        default: 'tu_password'
+      port:
+        description: 'Puerto SSH (opcional)'
+        required: false
+        default: '22'
 
 jobs:
   transfer:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Descargar repo
-      uses: actions/checkout@v3
+      - name: Clonar el repositorio
+        uses: actions/checkout@v3
 
-    - name: Dar permisos al script
-      run: chmod +x transfer.sh
+      - name: Dar permisos al script
+        run: chmod +x pipeline/scripts/transfer.sh
 
-    - name: Ejecutar transferencia
-      run: |
-        ./transfer.sh \
-        ${{ github.event.inputs.source_user }} \
-        ${{ github.event.inputs.source_ip }} \
-        ${{ github.event.inputs.source_port }} \
-        ${{ github.event.inputs.source_dir }} \
-        ${{ github.event.inputs.dest_user }} \
-        ${{ github.event.inputs.dest_ip }} \
-        ${{ github.event.inputs.dest_port }} \
-        ${{ github.event.inputs.dest_dir }} \
-        ${{ github.event.inputs.password }}
+      - name: Ejecutar transferencia
+        run: |
+          pipeline/scripts/transfer.sh \
+            ${{ github.event.inputs.source_ip }} \
+            ${{ github.event.inputs.source_dir }} \
+            ${{ github.event.inputs.dest_ip }} \
+            ${{ github.event.inputs.dest_dir }} \
+            ${{ github.event.inputs.port }}
