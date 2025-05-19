@@ -1,4 +1,4 @@
-name: Transfer Files
+name: transfer
 
 on:
   workflow_dispatch:
@@ -7,16 +7,22 @@ on:
         description: 'IP del servidor origen'
         required: true
       source_dir:
-        description: 'Directorio en servidor origen'
+        description: 'Directorio origen'
         required: true
       dest_ip:
         description: 'IP del servidor destino'
         required: true
       dest_dir:
-        description: 'Directorio en servidor destino'
+        description: 'Directorio destino'
+        required: true
+      username:
+        description: 'Usuario SSH'
+        required: true
+      password:
+        description: 'Contraseña SSH'
         required: true
       port:
-        description: 'Puerto SSH (opcional)'
+        description: 'Puerto SFTP'
         required: false
         default: '22'
 
@@ -25,17 +31,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clonar el repositorio
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Dar permisos al script
-        run: chmod +x pipeline/scripts/transfer.sh
+        run: chmod +x .pipeline/scripts/transfer.sh
 
-      - name: Ejecutar transferencia
+      - name: Ejecutar script de transferencia por SFTP
         run: |
-          pipeline/scripts/transfer.sh \
-            ${{ github.event.inputs.source_ip }} \
-            ${{ github.event.inputs.source_dir }} \
-            ${{ github.event.inputs.dest_ip }} \
-            ${{ github.event.inputs.dest_dir }} \
-            ${{ github.event.inputs.port }}
+          .pipeline/scripts/transfer.sh \
+            "${{ inputs.source_ip }}" \
+            "${{ inputs.source_dir }}" \
+            "${{ inputs.dest_ip }}" \
+            "${{ inputs.dest_dir }}" \
+            "${{ inputs.username }}" \
+            "${{ inputs.password }}" \
+            "${{ inputs.port }}"
